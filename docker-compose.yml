@@ -1,0 +1,87 @@
+services:
+  db:
+    image: mariadb:10.11
+    container_name: tg_omni_db
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${MARIADB_DATABASE}
+      MARIADB_USER: ${MARIADB_USER}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tg_omni_net
+
+  wordpress:
+    build:
+      context: ./wp
+      dockerfile: Dockerfile
+    container_name: tg_omni_wp
+    restart: unless-stopped
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_NAME: ${MARIADB_DATABASE}
+      WORDPRESS_DB_USER: ${MARIADB_USER}
+      WORDPRESS_DB_PASSWORD: ${MARIADB_PASSWORD}
+      WORDPRESS_TABLE_PREFIX: wp_
+      WORDPRESS_DEBUG: ${WORDPRESS_DEBUG:-false}
+    volumes:
+      - wp_data:/var/www/html
+      - ./wp/php-ini-overrides:/usr/local/etc/php/conf.d:z
+      - ./wp/themes:/var/www/html/wp-content/themes:delegated
+      - ./wp/plugins:/var/www/html/wp-content/plugins:delegated
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - tg_omni_net
+
+  nginx:
+    image: nginx:alpine
+    container_name: tg_omni_nginx
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+      - "8443:443"
+    volumes:
+      - wp_data:/var/www/html:z,ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      # Uncomment below for custom SSL certificates
+      # - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - wordpress
+    networks:
+      - tg_omni_net
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: tg_omni_pma
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_USER: ${MARIADB_USER}
+      PMA_PASSWORD: ${MARIADB_PASSWORD}
+    ports:
+      - "8081:80"
+    depends_on:
+      - db
+    networks:
+      - tg_omni_net
+
+volumes:
+  db_data:
+  wp_data:
+
+networks:
+  tg_omni_net:
+    driver: bridge

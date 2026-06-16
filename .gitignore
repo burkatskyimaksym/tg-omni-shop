@@ -1,0 +1,44 @@
+# Secrets
+.env
+
+# WordPress files (managed by Docker volume, but backed up files shouldn't go to git)
+wp/plugins/*
+!wp/plugins/.gitkeep
+wp/themes/*
+!wp/themes/.gitkeep
+
+# Nginx SSL certificates (keep directory, ignore actual certs)
+nginx/ssl/*.pem
+nginx/ssl/*.key
+nginx/ssl/*.crt
+
+# Database backups or dumps
+*.sql
+*.sql.gz
+
+# OS / IDE junk
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+## OS generated files ##
+*.lock
+
+# Logs
+*.log
+logs/
+
+# Node / Build artifacts (if any frontend in the future)
+node_modules/
+dist/
+build/
+
+# Temporary files
+tmp/
+temp/
+
+## Docker specific ##
+docker-compose.override.yml
