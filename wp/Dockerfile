@@ -19,9 +19,11 @@ RUN apt-get update && \
 RUN curl -o /usr/local/bin/wp -L https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar && \
     chmod +x /usr/local/bin/wp
 
-# Install additional PHP extensions
+# Install additional PHP extensions.
+# mysqli and pdo_mysql MUST be listed explicitly — any docker-php-ext-install
+# call resets the active extension set, dropping base-image pre-builds.
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \
-    docker-php-ext-install -j$(nproc) gd
+    docker-php-ext-install -j$(nproc) gd mysqli pdo_mysql
 
 # Copy PHP overrides
 COPY php-ini-overrides/ /usr/local/etc/php/conf.d/
@@ -30,8 +32,6 @@ COPY php-ini-overrides/ /usr/local/etc/php/conf.d/
 COPY setup-wp.sh /usr/local/bin/setup-wp.sh
 RUN chmod +x /usr/local/bin/setup-wp.sh
 
-USER www-data
-
-# Use the original WordPress entrypoint to handle wp-config.php generation,
-# then our setup script runs wp-cli and starts Apache
+# Stay as root — setup-wp.sh needs to write into wp-content/plugins & themes.
+# The script itself drops privileges to www-data before exec-ing apache2.
 CMD ["/usr/local/bin/setup-wp.sh"]

@@ -5,6 +5,12 @@ echo "========================================"
 echo "  TG Omni Shop - WordPress Setup"
 echo "========================================"
 
+# Verify PHP mysqli is actually functional
+if ! php -r 'mysqli_init();' > /dev/null 2>&1; then
+    echo "[ERROR] PHP mysqli extension is missing or non-functional — verify the Docker image."
+    exit 1
+fi
+
 # Wait for the database to be ready
 echo "[INFO] Waiting for database connection..."
 until mysqladmin ping -h"db" -P"3306" --silent; do
@@ -13,15 +19,122 @@ until mysqladmin ping -h"db" -P"3306" --silent; do
 done
 echo "[OK] Database connection established."
 
-# Only run wp-cli setup if not already installed
+# Ensure WordPress core is present
+if [ ! -e /var/www/html/wp-includes/version.php ]; then
+    echo "[INFO] Downloading WordPress core..."
+    wp core download --allow-root --path=/var/www/html
+    echo "[OK] WordPress core downloaded."
+fi
+
+# Fix ownership of writable wp-content subdirs only.
+# branding/ and dummy-data/ are mounted :ro so chown must skip them.
+# themes/ and plugins/ are mounted from host and edited in VS Code —
+# DO NOT chown them or the host loses write access.
+for dir in uploads mu-plugins upgrade; do
+    mkdir -p /var/www/html/wp-content/${dir}
+    chown -R www-data:www-data /var/www/html/wp-content/${dir}
+done
+
+# ---------------------------------------------------------------------------
+# REVERSE-PROXY FIX (runs every boot, not just first run)
+# ---------------------------------------------------------------------------
+mkdir -p /var/www/html/wp-content/mu-plugins
+cat > /var/www/html/wp-content/mu-plugins/reverse-proxy-fix.php << 'PHP'
+<?php
+/**
+ * Must-Use Plugin: Reverse Proxy HTTP Fix
+ */
+$_SERVER['HTTPS']       = 'off';
+$_SERVER['SERVER_PORT'] = '80';
+
+if ( ! defined( 'FORCE_SSL_ADMIN' ) ) {
+    define( 'FORCE_SSL_ADMIN', false );
+}
+PHP
+chown www-data:www-data /var/www/html/wp-content/mu-plugins/reverse-proxy-fix.php
+echo "[OK] Reverse-proxy fix installed as must-use plugin."
+
+# ---------------------------------------------------------------------------
+# BRANDING — runs every boot, re-imports only if file changed
+# ---------------------------------------------------------------------------
+LOGO_PATH="/var/www/html/wp-content/branding/logo.png"
+BANNER_PATH="/var/www/html/wp-content/branding/banner.jpg"
+
+if wp core is-installed --allow-root --path=/var/www/html 2>/dev/null; then
+    if [ -f "${LOGO_PATH}" ]; then
+        LOGO_MD5=$(md5sum "${LOGO_PATH}" | cut -d' ' -f1)
+        STORED_MD5=$(wp option get logo_md5 --path=/var/www/html --allow-root 2>/dev/null || echo "")
+
+        if [ "${LOGO_MD5}" != "${STORED_MD5}" ]; then
+            echo "[INFO] Logo changed, re-importing..."
+            LOGO_ID=$(wp media import "${LOGO_PATH}" \
+                --title="Site Logo" \
+                --porcelain \
+                --path=/var/www/html \
+                --allow-root)
+            wp option update site_logo "${LOGO_ID}" --path=/var/www/html --allow-root
+            wp option update custom_logo "${LOGO_ID}" --path=/var/www/html --allow-root
+            wp option update logo_md5 "${LOGO_MD5}" --path=/var/www/html --allow-root
+            echo "[OK] Logo updated (ID: ${LOGO_ID})"
+        else
+            echo "[OK] Logo unchanged, skipping."
+        fi
+    fi
+
+    if [ -f "${BANNER_PATH}" ]; then
+        BANNER_MD5=$(md5sum "${BANNER_PATH}" | cut -d' ' -f1)
+        STORED_BANNER_MD5=$(wp option get banner_md5 --path=/var/www/html --allow-root 2>/dev/null || echo "")
+
+        if [ "${BANNER_MD5}" != "${STORED_BANNER_MD5}" ]; then
+            echo "[INFO] Banner changed, re-importing..."
+            BANNER_ID=$(wp media import "${BANNER_PATH}" \
+                --title="Store Banner" \
+                --porcelain \
+                --path=/var/www/html \
+                --allow-root)
+            wp option update store_banner_id "${BANNER_ID}" --path=/var/www/html --allow-root
+            wp option update banner_md5 "${BANNER_MD5}" --path=/var/www/html --allow-root
+            echo "[OK] Banner updated (ID: ${BANNER_ID})"
+        else
+            echo "[OK] Banner unchanged, skipping."
+        fi
+    fi
+fi
+
+# Create wp-config.php from environment variables if not present
+if [ ! -e /var/www/html/wp-config.php ]; then
+    echo "[INFO] Creating wp-config.php..."
+    SITE_URL="${WP_SITE_URL:-http://localhost:8080}"
+
+    wp config create \
+        --allow-root \
+        --path=/var/www/html \
+        --dbhost="${WORDPRESS_DB_HOST}" \
+        --dbname="${WORDPRESS_DB_NAME}" \
+        --dbuser="${WORDPRESS_DB_USER}" \
+        --dbpass="${WORDPRESS_DB_PASSWORD}" \
+        --dbprefix="${WORDPRESS_TABLE_PREFIX:-wp_}"
+
+    wp config set WP_HOME    "${SITE_URL}" --allow-root --path=/var/www/html
+    wp config set WP_SITEURL "${SITE_URL}" --allow-root --path=/var/www/html
+    wp config set FORCE_SSL_ADMIN false --raw --allow-root --path=/var/www/html
+
+    echo "[OK] wp-config.php created."
+fi
+
+# ---------------------------------------------------------------------------
+# FIRST-RUN SETUP — only runs once when WordPress is not yet installed
+# ---------------------------------------------------------------------------
 if ! wp core is-installed --allow-root --path=/var/www/html 2>/dev/null; then
     echo "[INFO] WordPress not initialized — running first-time setup..."
+
+    SITE_URL="${WP_SITE_URL:-http://localhost:8080}"
 
     wp core install \
         --allow-root \
         --path=/var/www/html \
-        --url="http://localhost:8080" \
-        --title="Omni Shop" \
+        --url="${SITE_URL}" \
+        --title="${STORE_NAME:-Omni Shop}" \
         --admin_user="admin" \
         --admin_password="admin" \
         --admin_email="admin@omnishop.local" \
@@ -29,26 +142,101 @@ if ! wp core is-installed --allow-root --path=/var/www/html 2>/dev/null; then
 
     echo "[OK] WordPress core installed."
 
+    # Store name and description
+    wp option update blogname "${STORE_NAME:-Omni Shop}" --path=/var/www/html --allow-root
+    wp option update blogdescription "${STORE_DESCRIPTION:-Your one-stop store}" --path=/var/www/html --allow-root
+    echo "[OK] Store name and description set."
+
+    # Clean up default WordPress content — delete by slug, never by ID
+    wp post delete \
+        $(wp post list --post_type=post --name=hello-world --field=ID --allow-root --path=/var/www/html 2>/dev/null) \
+        --force --allow-root --path=/var/www/html 2>/dev/null || true
+
+    wp post delete \
+        $(wp post list --post_type=page --name=sample-page --field=ID --allow-root --path=/var/www/html 2>/dev/null) \
+        --force --allow-root --path=/var/www/html 2>/dev/null || true
+
+    wp comment delete 1 --force --allow-root --path=/var/www/html 2>/dev/null || true
+    echo "[OK] Default content removed."
+
     echo "[INFO] Installing WooCommerce..."
     wp plugin install woocommerce --activate --path=/var/www/html --allow-root
     echo "[OK] WooCommerce installed and activated."
 
+    echo "[INFO] Installing Kadence theme..."
+    wp theme install kadence --path=/var/www/html --allow-root
+
+    # Activate child theme if present, otherwise activate Kadence directly
+    if [ -d /var/www/html/wp-content/themes/kadence-child ]; then
+        wp theme activate kadence-child --path=/var/www/html --allow-root
+        echo "[OK] Kadence child theme activated."
+    else
+        wp theme activate kadence --path=/var/www/html --allow-root
+        echo "[OK] Kadence theme activated."
+    fi
+
     echo "[INFO] Setting up permalinks (required by WooCommerce REST API)..."
     wp rewrite structure '/%postname%/' --hard --path=/var/www/html --allow-root
-    echo "[OK] Permalinks configured."
 
-    # Create a demo product for quick testing
-    echo "[INFO] Creating demo product..."
-    wp post create \
-        --allow-root \
-        --post_type=product \
-        --post_title='Demo Product' \
-        --post_content='This is a sample product for testing.' \
-        --post_status=publish \
-        --meta_input='{"_price":"199.99","_regular_price":"199.99","_stock_status":"instock"}' \
-        --path=/var/www/html \
-        --porcelain > /dev/null 2>&1 || true
-    echo "[OK] Demo product created."
+    # Write .htaccess manually — WP-CLI cannot regenerate it without AllowOverride All
+    cat > /var/www/html/.htaccess << 'HTACCESS'
+# BEGIN WordPress
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+</IfModule>
+# END WordPress
+HTACCESS
+    echo "[OK] Permalinks and .htaccess configured."
+
+    # Import branding on first run (md5 check handles subsequent runs)
+    if [ -f "${LOGO_PATH}" ]; then
+        echo "[INFO] Importing logo..."
+        LOGO_MD5=$(md5sum "${LOGO_PATH}" | cut -d' ' -f1)
+        LOGO_ID=$(wp media import "${LOGO_PATH}" \
+            --title="Site Logo" \
+            --porcelain \
+            --path=/var/www/html \
+            --allow-root)
+        wp option update site_logo "${LOGO_ID}" --path=/var/www/html --allow-root
+        wp option update custom_logo "${LOGO_ID}" --path=/var/www/html --allow-root
+        wp option update logo_md5 "${LOGO_MD5}" --path=/var/www/html --allow-root
+        echo "[OK] Logo imported (ID: ${LOGO_ID})"
+    fi
+
+    if [ -f "${BANNER_PATH}" ]; then
+        echo "[INFO] Importing banner..."
+        BANNER_MD5=$(md5sum "${BANNER_PATH}" | cut -d' ' -f1)
+        BANNER_ID=$(wp media import "${BANNER_PATH}" \
+            --title="Store Banner" \
+            --porcelain \
+            --path=/var/www/html \
+            --allow-root)
+        wp option update store_banner_id "${BANNER_ID}" --path=/var/www/html --allow-root
+        wp option update banner_md5 "${BANNER_MD5}" --path=/var/www/html --allow-root
+        echo "[OK] Banner imported (ID: ${BANNER_ID})"
+    fi
+
+    echo "[INFO] Seeding dummy products..."
+    if [ -f /var/www/html/wp-content/dummy-data/seed-products.sh ]; then
+        sh /var/www/html/wp-content/dummy-data/seed-products.sh
+    else
+        # Fallback single demo product
+        wp post create \
+            --allow-root \
+            --post_type=product \
+            --post_title='Demo Product' \
+            --post_content='This is a sample product for testing.' \
+            --post_status=publish \
+            --meta_input='{"_price":"199.99","_regular_price":"199.99","_stock_status":"instock"}' \
+            --path=/var/www/html \
+            --porcelain > /dev/null 2>&1 || true
+        echo "[OK] Demo product created."
+    fi
 
     echo ""
     echo "========================================"
@@ -59,7 +247,7 @@ if ! wp core is-installed --allow-root --path=/var/www/html 2>/dev/null; then
     echo "    Password:   admin"
     echo "========================================"
 else
-    echo "[OK] WordPress is already installed — skipping setup."
+    echo "[OK] WordPress is already installed — skipping first-run setup."
 fi
 
 echo "[INFO] Starting Apache..."

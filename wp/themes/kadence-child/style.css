@@ -1,0 +1,33 @@
+/*
+Theme Name: Kadence Child
+Template: kadence
+Version: 1.0
+*/
+
+/* ====================================
+   LOGO SIZING
+   ==================================== */
+.custom-logo {
+    max-width: 64px !important;
+    width: 64px !important;
+    height: auto !important;
+}
+
+.brand.has-logo-image {
+    display: flex;
+    align-items: center;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .custom-logo {
+        width: 40px !important;
+        max-width: 40px !important;
+    }
+}
+
+@media (min-width: 720px) and (max-width: 1024px) {
+    .mobile-site-branding .site-title {
+        display: block !important;
+    }
+}
