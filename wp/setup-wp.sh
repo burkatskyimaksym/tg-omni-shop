@@ -259,5 +259,7 @@ else
     echo "[OK] WordPress is already installed — skipping first-run setup."
 fi
 
+chown -R www-data:www-data /var/www/html/wp-content/uploads
+
 echo "[INFO] Starting Apache..."
 exec apache2-foreground
