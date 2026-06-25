@@ -160,11 +160,20 @@ if ! wp core is-installed --allow-root --path=/var/www/html 2>/dev/null; then
     echo "[OK] Default content removed."
 
     echo "[INFO] Installing WooCommerce..."
-    wp plugin install woocommerce --activate --path=/var/www/html --allow-root
+    if [ -d /var/www/html/wp-content/plugins/woocommerce ]; then
+        echo "[INFO] WooCommerce directory already exists, activating..."
+        wp plugin activate woocommerce --path=/var/www/html --allow-root || true
+    else
+        wp plugin install woocommerce --activate --path=/var/www/html --allow-root
+    fi
     echo "[OK] WooCommerce installed and activated."
 
     echo "[INFO] Installing Kadence theme..."
-    wp theme install kadence --path=/var/www/html --allow-root
+    if [ -d /var/www/html/wp-content/themes/kadence ]; then
+        echo "[INFO] Kadence theme directory already exists, skipping install..."
+    else
+        wp theme install kadence --path=/var/www/html --allow-root
+    fi
 
     # Activate child theme if present, otherwise activate Kadence directly
     if [ -d /var/www/html/wp-content/themes/kadence-child ]; then
