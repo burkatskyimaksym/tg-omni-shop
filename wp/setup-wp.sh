@@ -230,21 +230,50 @@ HTACCESS
         echo "[OK] Banner imported (ID: ${BANNER_ID})"
     fi
 
-    echo "[INFO] Seeding dummy products..."
+# ---------------------------------------------------------------------------
+    # WOOCOMMERCE STORE CONFIGURATION
+    # ---------------------------------------------------------------------------
+    echo "[INFO] Configuring WooCommerce store settings..."
+
+    wp option update woocommerce_default_country "UA:UA-30" --path=/var/www/html --allow-root
+    wp option update woocommerce_currency         "UAH"          --path=/var/www/html --allow-root
+    wp option update woocommerce_currency_pos     "right_space"  --path=/var/www/html --allow-root
+    wp option update woocommerce_price_thousand_sep " "          --path=/var/www/html --allow-root
+    wp option update woocommerce_price_decimal_sep  ","          --path=/var/www/html --allow-root
+    wp option update woocommerce_onboarding_profile '{"skipped":true,"completed":true}' --format=json --path=/var/www/html --allow-root
+    wp option update woocommerce_admin_notices '[]' --format=json --path=/var/www/html --allow-root
+    echo "[OK] WooCommerce configured (UA/Kyiv, UAH, wizard skipped)."
+
+    # ---------------------------------------------------------------------------
+    # HOMEPAGE — point the front page to the WooCommerce Shop page
+    # ---------------------------------------------------------------------------
+    echo "[INFO] Configuring homepage..."
+
+    SHOP_PAGE_ID=$(wp post list \
+        --post_type=page \
+        --pagename=shop \
+        --field=ID \
+        --allow-root \
+        --path=/var/www/html 2>/dev/null | head -1)
+
+    if [ -n "${SHOP_PAGE_ID}" ]; then
+        wp option update show_on_front   "page"             --path=/var/www/html --allow-root
+        wp option update page_on_front   "${SHOP_PAGE_ID}"  --path=/var/www/html --allow-root
+        wp option update woocommerce_shop_page_id "${SHOP_PAGE_ID}" --path=/var/www/html --allow-root
+        echo "[OK] Homepage set to Shop page (ID: ${SHOP_PAGE_ID})."
+    else
+        echo "[WARN] Shop page not found — WooCommerce may not be fully activated yet."
+    fi
+
+    # ---------------------------------------------------------------------------
+    # SEED PRODUCTS
+    # ---------------------------------------------------------------------------
+    echo "[INFO] Seeding products..."
     if [ -f /var/www/html/wp-content/dummy-data/seed-products.sh ]; then
         sh /var/www/html/wp-content/dummy-data/seed-products.sh
     else
-        # Fallback single demo product
-        wp post create \
-            --allow-root \
-            --post_type=product \
-            --post_title='Demo Product' \
-            --post_content='This is a sample product for testing.' \
-            --post_status=publish \
-            --meta_input='{"_price":"199.99","_regular_price":"199.99","_stock_status":"instock"}' \
-            --path=/var/www/html \
-            --porcelain > /dev/null 2>&1 || true
-        echo "[OK] Demo product created."
+        echo "[WARN] seed-products.sh not found — no products created."
+        echo "[WARN] Add wp/dummy-data/seed-products.sh to seed your catalog."
     fi
 
     echo ""

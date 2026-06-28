@@ -41,6 +41,7 @@ services:
       - ./wp/themes:/var/www/html/wp-content/themes:delegated
       - ./wp/plugins:/var/www/html/wp-content/plugins:delegated
       - ./wp/branding:/var/www/html/wp-content/branding:ro
+      - ./wp/dummy-data:/var/www/html/wp-content/dummy-data:ro
     depends_on:
       db:
         condition: service_healthy

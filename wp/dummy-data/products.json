@@ -1,0 +1,84 @@
+[
+  {
+    "sku": "cone-001",
+    "name": "Cone",
+    "short_description": "<strong>The Classic Geometric Cone</strong>\nA perfectly balanced, tactile geometric cone crafted with smooth, rounded contours and an ergonomic grip. Designed to sit beautifully in the palm of your hand, this minimalist piece serves as the ultimate sensory object, desktop weight, or elegant architectural accent.",
+    "description": "<h2>Product Overview</h2>\nDiscover the satisfying weight and timeless form of our <strong>Classic Geometric Cone</strong>. Meticulously sculpted with smooth, rounded edges and a weighted base, this cone is engineered to feel substantial and satisfying from the moment you pick it up.\n\nWhether you are looking for a calming sensory object to hold during a deep-focus session, a striking minimalist paperweight for your workspace, or a teaching tool for physical geometry, its seamless contours invite touch and bring a sense of grounded calm to any environment.\n<h3>Why the Cone is the Perfect Shape</h3>\n<ul>\n<li><strong>Ergonomic Perfection:</strong> The natural taper allows your fingers to wrap effortlessly around the body, making it incredibly comfortable to hold, turn, and pass from hand to hand.</li>\n<li><strong>Ultimate Stability:</strong> With its low center of gravity and broad base, it sits firmly on any flat surface, resisting tipping and acting as a dependable anchor for papers or blueprints.</li>\n<li><strong>Visual Harmony:</strong> The minimalist design draws the eye upward, directing focus and creating a clean, modern focal point on desks, shelves, or studio displays.</li>\n</ul>",
+    "categories": [
+      "cone",
+      "single"
+    ],
+    "tags": [],
+    "stock": 1000,
+    "low_stock_amount": 100,
+    "weight": 0.5,
+    "featured_image": "cone-M.png",
+    "variations": [
+      {
+        "size": "S",
+        "sku_suffix": "s",
+        "price": 100.0,
+        "sale_price": null,
+        "image": "cone-S.png",
+        "description": "S sized cone"
+      },
+      {
+        "size": "M",
+        "sku_suffix": "m",
+        "price": 100.0,
+        "sale_price": null,
+        "image": "cone-M.png",
+        "description": "M sized cone"
+      },
+      {
+        "size": "L",
+        "sku_suffix": "l",
+        "price": 100.0,
+        "sale_price": null,
+        "image": "cone-L.png",
+        "description": "L sized cone"
+      }
+    ]
+  },
+  {
+    "sku": "square-001",
+    "name": "Square",
+    "short_description": "<strong>The Timeless Geometric Square</strong>\nA solid, satisfying square with perfectly rounded corners and a weighted, grounded feel. Built for desks, shelves, and hands that appreciate clean geometry.",
+    "description": "<h2>Product Overview</h2>\nMeet the <strong>Classic Geometric Square</strong> — the purest expression of balance and stability in physical form. With its rounded corners and matte finish, it invites touch while anchoring any surface it rests on.\n<h3>Why the Square Works</h3>\n<ul>\n<li><strong>Stability:</strong> Four equal sides and a flat base make it the most stable shape in the collection.</li>\n<li><strong>Versatility:</strong> Paperweight, sensory object, desk accent — the square adapts to any role.</li>\n<li><strong>Tactile Satisfaction:</strong> Rounded corners eliminate sharp edges, making it comfortable to hold and pass between hands.</li>\n</ul>",
+    "categories": [
+      "square",
+      "single"
+    ],
+    "tags": [],
+    "stock": 1000,
+    "low_stock_amount": 100,
+    "weight": 0.6,
+    "featured_image": "square-M.png",
+    "variations": [
+      {
+        "size": "S",
+        "sku_suffix": "s",
+        "price": 100.0,
+        "sale_price": null,
+        "image": "square-S.png",
+        "description": "S sized square"
+      },
+      {
+        "size": "M",
+        "sku_suffix": "m",
+        "price": 100.0,
+        "sale_price": null,
+        "image": "square-M.png",
+        "description": "M sized square"
+      },
+      {
+        "size": "L",
+        "sku_suffix": "l",
+        "price": 100.0,
+        "sale_price": null,
+        "image": "square-L.png",
+        "description": "L sized square"
+      }
+    ]
+  }
+]
