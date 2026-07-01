@@ -288,6 +288,75 @@ else
     echo "[OK] WordPress is already installed — skipping first-run setup."
 fi
 
+# ---------------------------------------------------------------------------
+# WAYFORPAY GATEWAY (block-checkout compatible) — runs every boot
+# ---------------------------------------------------------------------------
+# Deliberately placed AFTER the first-run setup block above, not gated on
+# `wp core is-installed` on its own. On a fresh container, WordPress and
+# WooCommerce don't exist until the first-run block above creates them
+# *during this same script execution* — so checking is-installed earlier
+# in the script would see "false" and skip this whole section on exactly
+# the run where it's needed most. By this point WordPress is guaranteed
+# to exist whether this was a first run or a subsequent boot.
+#
+# The official wayforpay/Word-Press-Woocommerce repo has no block-checkout
+# support on master (see open PR #40 — "Added support block design from
+# Woocoomers v6.9.0", unmerged as of writing). We pull that PR branch
+# directly so the gateway actually shows up under WooCommerce Blocks
+# checkout. If PR #40 gets merged upstream, switch WFP_PR_REF below to
+# "master" and drop the pull/40/head fetch.
+echo "[INFO] Installing WayForPay payment gateway..."
+
+WFP_PLUGIN_DIR="/var/www/html/wp-content/plugins/wc-wayforpay"
+WFP_PR_REF="pull/40/head"
+
+if [ -d "${WFP_PLUGIN_DIR}" ]; then
+    echo "[INFO] WayForPay plugin directory already exists, skipping clone..."
+else
+    git clone --quiet https://github.com/wayforpay/Word-Press-Woocommerce.git "${WFP_PLUGIN_DIR}"
+    git -C "${WFP_PLUGIN_DIR}" fetch --quiet origin "${WFP_PR_REF}:block-support"
+    git -C "${WFP_PLUGIN_DIR}" checkout --quiet block-support
+
+    # ./wp/plugins is a host bind mount (see docker-compose.yml). The
+    # clone above runs as root, which would leave root-owned files on
+    # the host and break VS Code write access — same failure mode the
+    # "DO NOT chown them" comment above is warning about, except here
+    # we WANT a chown because we (root) just created these files and
+    # nothing else owns them yet. www-data (UID 33) matches how the
+    # rest of wp-content is owned in this image; adjust if your host
+    # user has a different UID mapped via docker-compose `user:`.
+    chown -R www-data:www-data "${WFP_PLUGIN_DIR}"
+
+    echo "[OK] WayForPay gateway cloned (block-support branch from PR #40)."
+fi
+
+wp plugin is-active wc-wayforpay --path=/var/www/html --allow-root 2>/dev/null || \
+    wp plugin activate wc-wayforpay --path=/var/www/html --allow-root
+
+# Verified against the actual installed gateway via wp eval var_dump():
+# id="wayforpay", form_fields are merchant_account / secret_key.
+# Test credentials — see https://wiki.wayforpay.com/en/view/852472
+# Replace with real merchant credentials before going to production.
+wp eval '
+    $gateways = WC()->payment_gateways()->payment_gateways();
+    $found = false;
+    foreach ( $gateways as $gateway ) {
+        if ( $gateway->id === "wayforpay" ) {
+            $found = true;
+            $settings = $gateway->settings;
+            $settings["enabled"]          = "yes";
+            $settings["merchant_account"] = "'"${WAY_FOR_PAY_MERCHANT_ACCOUNT}"'";
+            $settings["secret_key"]       = "'"${WAY_FOR_PAY_MERCHANT_SECRET_KEY}"'";
+            update_option( $gateway->get_option_key(), $settings );
+            echo "[OK] WayForPay gateway enabled with test credentials (id: {$gateway->id})\n";
+            break;
+        }
+    }
+    if ( ! $found ) {
+        echo "[WARN] No WayForPay gateway with id=wayforpay found in WC payment_gateways() registry.\n";
+    }
+' --path=/var/www/html --allow-root
+
 chown -R www-data:www-data /var/www/html/wp-content/uploads
 
 echo "[INFO] Starting Apache..."

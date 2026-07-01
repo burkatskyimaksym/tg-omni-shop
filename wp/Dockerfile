@@ -10,6 +10,7 @@ RUN apt-get update && \
         default-mysql-client \
         curl \
         ca-certificates \
+        git \
         libpng-dev \
         libjpeg-dev \
         libfreetype6-dev \
