@@ -357,6 +357,60 @@ wp eval '
     }
 ' --path=/var/www/html --allow-root
 
+# ---------------------------------------------------------------------------
+# MORKVA UA SHIPPING (Nova Poshta / Ukrposhta) — runs every boot
+# ---------------------------------------------------------------------------
+# Same rationale as the WayForPay block above: placed after first-run setup,
+# gated on its own directory check rather than `wp core is-installed`, so it
+# also runs correctly on the very first boot (right after WordPress/WooCommerce
+# get created earlier in this same script execution).
+echo "[INFO] Installing Morkva UA Shipping plugin..."
+
+if [ -d /var/www/html/wp-content/plugins/morkva-ua-shipping ]; then
+    echo "[INFO] Morkva UA Shipping already installed, activating..."
+    wp plugin activate morkva-ua-shipping --path=/var/www/html --allow-root || true
+else
+    wp plugin install morkva-ua-shipping --activate --path=/var/www/html --allow-root
+    echo "[OK] Morkva UA Shipping installed and activated."
+fi
+
+# Confirmed via wp eval against the real installed plugin:
+#   docker compose exec wordpress wp eval \
+#     'foreach (wp_load_alloptions() as $k => $v) { if (stripos($k, "mrkv") !== false) echo "$k\n"; }' \
+#     --allow-root
+# -> mrkv_api_fixed_np (flat string option, not a serialized settings array —
+#    the mrkv_ua_shipping_settings guess returned false and was wrong).
+if [ -n "${NOVA_POSHTA_API_KEY}" ]; then
+    wp option update mrkv_api_fixed_np "${NOVA_POSHTA_API_KEY}" --path=/var/www/html --allow-root
+    echo "[OK] Nova Poshta API key set (option: mrkv_api_fixed_np)."
+else
+    echo "[WARN] NOVA_POSHTA_API_KEY not set in environment — skipping API key configuration."
+fi
+
+# ---------------------------------------------------------------------------
+# CHECKOUT PAGE — force classic [woocommerce_checkout] shortcode
+# ---------------------------------------------------------------------------
+# Morkva UA Shipping (and every UA Nova Poshta/Ukrposhta plugin checked at
+# the time of writing) only injects its city/warehouse fields into the
+# classic shortcode-based checkout — none of them support the WooCommerce
+# Checkout block yet. Runs every boot, not just first-run, so it survives
+# WooCommerce re-inserting its block-based checkout template after updates.
+if wp core is-installed --allow-root --path=/var/www/html 2>/dev/null; then
+    CHECKOUT_PAGE_ID=$(wp post list \
+        --post_type=page \
+        --pagename=checkout \
+        --field=ID \
+        --allow-root \
+        --path=/var/www/html 2>/dev/null | head -1)
+
+    if [ -n "${CHECKOUT_PAGE_ID}" ]; then
+        wp post update "${CHECKOUT_PAGE_ID}" --post_content='[woocommerce_checkout]' --path=/var/www/html --allow-root
+        echo "[OK] Checkout page set to classic shortcode (ID: ${CHECKOUT_PAGE_ID})."
+    else
+        echo "[WARN] Checkout page not found — WooCommerce may not be fully activated yet."
+    fi
+fi
+
 chown -R www-data:www-data /var/www/html/wp-content/uploads
 
 echo "[INFO] Starting Apache..."
