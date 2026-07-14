@@ -1,4 +1,4 @@
-.PHONY: all up stop down logs wp-shell db-shell pma nginx-logs wp-logs db-logs status rebuild
+.PHONY: all up stop down logs wp-shell db-shell pma nginx-logs wp-logs db-logs bot-logs bot-shell status rebuild
 
 # Start all services in the background
 up:
@@ -25,6 +25,12 @@ wp-logs:
 
 db-logs:
 	docker compose logs -f db
+
+bot-logs:
+	docker compose logs -f bot
+
+bot-shell:
+	docker compose exec bot sh
 
 # Open a shell inside the WordPress container
 wp-shell:

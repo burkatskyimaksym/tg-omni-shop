@@ -41,5 +41,8 @@ build/
 tmp/
 temp/
 
+# Python environment
+.venv/
+
 ## Docker specific ##
 docker-compose.override.yml

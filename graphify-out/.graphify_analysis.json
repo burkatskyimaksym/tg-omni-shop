@@ -1,0 +1,281 @@
+{
+  "communities": {
+    "0": [
+      "basemodel",
+      "basesettings",
+      "bot_config",
+      "bot_config_config",
+      "bot_config_settings",
+      "bot_llm_factory",
+      "bot_llm_factory_get_provider",
+      "bot_llm_init",
+      "bot_llm_providers_base",
+      "bot_llm_providers_base_chatresponse",
+      "bot_llm_providers_base_llmprovider",
+      "bot_llm_providers_base_llmprovider_chat",
+      "bot_llm_providers_base_llmprovider_embed",
+      "bot_llm_providers_init",
+      "bot_llm_providers_ollama",
+      "bot_llm_providers_ollama_ollamaprovider",
+      "bot_llm_providers_ollama_ollamaprovider_chat",
+      "bot_llm_providers_ollama_ollamaprovider_close",
+      "bot_llm_providers_ollama_ollamaprovider_embed",
+      "bot_llm_providers_ollama_ollamaprovider_init",
+      "bot_llm_providers_openrouter",
+      "protocol"
+    ],
+    "1": [
+      "wp_dummy_data_seed_products_create_variable_product",
+      "wp_dummy_data_seed_products_create_variation",
+      "wp_dummy_data_seed_products_ensure_category",
+      "wp_dummy_data_seed_products_import_image",
+      "wp_dummy_data_seed_products_product_exists",
+      "wp_dummy_data_seed_products_py_wp_dummy_data_seed_products",
+      "wp_dummy_data_seed_products_rationale_105",
+      "wp_dummy_data_seed_products_rationale_113",
+      "wp_dummy_data_seed_products_rationale_166",
+      "wp_dummy_data_seed_products_rationale_176",
+      "wp_dummy_data_seed_products_rationale_30",
+      "wp_dummy_data_seed_products_rationale_54",
+      "wp_dummy_data_seed_products_rationale_90",
+      "wp_dummy_data_seed_products_seed",
+      "wp_dummy_data_seed_products_variation_exists",
+      "wp_dummy_data_seed_products_wp"
+    ],
+    "2": [
+      "any",
+      "basemiddleware",
+      "bot_llm_factory_close_provider",
+      "bot_main",
+      "bot_main_health_check",
+      "bot_main_lifespan",
+      "bot_main_on_shutdown",
+      "bot_main_on_startup",
+      "bot_middleware_init",
+      "bot_middleware_logging",
+      "bot_middleware_logging_loggingmiddleware",
+      "bot_middleware_logging_loggingmiddleware_call",
+      "fastapi"
+    ],
+    "3": [
+      "bot_handlers_commands",
+      "bot_handlers_commands_cmd_help",
+      "bot_handlers_commands_cmd_start",
+      "bot_handlers_commands_py_fsmcontext",
+      "bot_llm_providers_base_message",
+      "bot_memory_conversation",
+      "bot_memory_conversation_conversationmemory",
+      "bot_memory_conversation_conversationmemory_add_message",
+      "bot_memory_conversation_conversationmemory_get_context",
+      "bot_memory_conversation_conversationmemory_init",
+      "bot_memory_conversation_conversationmemory_maybe_summarize",
+      "bot_memory_init"
+    ],
+    "4": [
+      "bot_handlers_init",
+      "bot_handlers_messages",
+      "bot_handlers_messages_generate_and_send",
+      "bot_handlers_messages_handle_other",
+      "bot_handlers_messages_handle_photo",
+      "bot_handlers_messages_handle_text",
+      "bot_handlers_messages_py_fsmcontext",
+      "bot_handlers_messages_rationale_19",
+      "bot_utils_formating",
+      "bot_utils_formating_rationale_5",
+      "bot_utils_formating_strip_markdown"
+    ],
+    "5": [
+      "bot_llm_providers_openrouter_openrouterprovider",
+      "bot_llm_providers_openrouter_openrouterprovider_chat",
+      "bot_llm_providers_openrouter_openrouterprovider_close",
+      "bot_llm_providers_openrouter_openrouterprovider_embed",
+      "bot_llm_providers_openrouter_openrouterprovider_init"
+    ],
+    "6": [
+      "opencode_opencode",
+      "opencode_opencode_plugin",
+      "opencode_opencode_schema",
+      "ref_opencode_plugins_graphify_js"
+    ],
+    "7": [
+      "bot_utils_init",
+      "bot_utils_streaming",
+      "bot_utils_streaming_stream_with_throttle"
+    ],
+    "8": [
+      "opencode_plugins_graphify",
+      "opencode_plugins_graphify_graphifyplugin",
+      "opencode_plugins_graphify_rationale_4"
+    ],
+    "9": [
+      "wp_dummy_data_seed_products_sh__entry",
+      "wp_dummy_data_seed_products_sh_wp_dummy_data_seed_products"
+    ],
+    "10": [
+      "wp_setup_wp",
+      "wp_setup_wp_sh__entry"
+    ],
+    "11": [
+      "bot_init"
+    ],
+    "12": [
+      "wp_themes_kadence_child_functions"
+    ]
+  },
+  "cohesion": {
+    "0": 0.1645021645021645,
+    "1": 0.225,
+    "2": 0.24358974358974358,
+    "3": 0.30303030303030304,
+    "4": 0.32727272727272727,
+    "5": 0.4,
+    "6": 0.5,
+    "7": 1.0,
+    "8": 0.6666666666666666,
+    "9": 1.0,
+    "10": 1.0,
+    "11": 1.0,
+    "12": 1.0
+  },
+  "gods": [
+    {
+      "id": "bot_llm_providers_base_message",
+      "label": "Message",
+      "degree": 24
+    },
+    {
+      "id": "bot_memory_conversation_conversationmemory",
+      "label": "ConversationMemory",
+      "degree": 12
+    },
+    {
+      "id": "bot_llm_providers_base_llmprovider",
+      "label": "LLMProvider",
+      "degree": 11
+    },
+    {
+      "id": "bot_handlers_messages_generate_and_send",
+      "label": "generate_and_send()",
+      "degree": 10
+    },
+    {
+      "id": "bot_llm_providers_ollama_ollamaprovider",
+      "label": "OllamaProvider",
+      "degree": 9
+    },
+    {
+      "id": "bot_llm_providers_openrouter_openrouterprovider",
+      "label": "OpenRouterProvider",
+      "degree": 9
+    },
+    {
+      "id": "bot_llm_factory_get_provider",
+      "label": "get_provider()",
+      "degree": 8
+    },
+    {
+      "id": "wp_dummy_data_seed_products_wp",
+      "label": "wp()",
+      "degree": 8
+    },
+    {
+      "id": "wp_dummy_data_seed_products_seed",
+      "label": "seed()",
+      "degree": 6
+    },
+    {
+      "id": "bot_middleware_logging_loggingmiddleware",
+      "label": "LoggingMiddleware",
+      "degree": 5
+    }
+  ],
+  "surprises": [
+    {
+      "source": "OllamaProvider",
+      "target": "Message",
+      "source_files": [
+        "bot/llm/providers/ollama.py",
+        "bot/llm/providers/base.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "uses",
+      "why": "inferred connection - not explicitly stated in source; bridges separate communities"
+    },
+    {
+      "source": "OpenRouterProvider",
+      "target": "Message",
+      "source_files": [
+        "bot/llm/providers/openrouter.py",
+        "bot/llm/providers/base.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "uses",
+      "why": "inferred connection - not explicitly stated in source; bridges separate communities"
+    },
+    {
+      "source": "ConversationMemory",
+      "target": "LLMProvider",
+      "source_files": [
+        "bot/memory/conversation.py",
+        "bot/llm/providers/base.py"
+      ],
+      "confidence": "INFERRED",
+      "relation": "uses",
+      "why": "inferred connection - not explicitly stated in source; bridges separate communities"
+    },
+    {
+      "source": "cmd_help()",
+      "target": "Message",
+      "source_files": [
+        "bot/handlers/commands.py",
+        "bot/llm/providers/base.py"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "peripheral node `cmd_help()` unexpectedly reaches hub `Message`"
+    },
+    {
+      "source": "generate_and_send()",
+      "target": "get_provider()",
+      "source_files": [
+        "bot/handlers/messages.py",
+        "bot/llm/factory.py"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "bridges separate communities"
+    }
+  ],
+  "questions": [
+    {
+      "type": "bridge_node",
+      "question": "Why does `Message` connect `Message` to `factory.py`, `main.py`, `messages.py`, `OpenRouterProvider`?",
+      "why": "High betweenness centrality (0.155) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `OpenRouterProvider` connect `OpenRouterProvider` to `factory.py`, `Message`?",
+      "why": "High betweenness centrality (0.047) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `OllamaProvider` connect `factory.py` to `Message`?",
+      "why": "High betweenness centrality (0.047) - this node is a cross-community bridge."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 3 inferred relationships involving `Message` (e.g. with `OllamaProvider` and `OpenRouterProvider`) actually correct?",
+      "why": "`Message` has 3 INFERRED edges - model-reasoned connections that need verification."
+    },
+    {
+      "type": "verify_inferred",
+      "question": "Are the 2 inferred relationships involving `ConversationMemory` (e.g. with `LLMProvider` and `Message`) actually correct?",
+      "why": "`ConversationMemory` has 2 INFERRED edges - model-reasoned connections that need verification."
+    },
+    {
+      "type": "isolated_nodes",
+      "question": "What connects `$schema`, `.opencode/plugins/graphify.js`, `Config` to the rest of the system?",
+      "why": "5 weakly-connected nodes found - possible documentation gaps or missing edges."
+    }
+  ]
+}

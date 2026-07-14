@@ -1,0 +1,22 @@
+services:
+  bot:
+    build: ./bot
+    container_name: tg_omni_bot
+    restart: unless-stopped
+    environment:
+      - BOT_TOKEN=${BOT_TOKEN}
+      - LLM_PROVIDER=${LLM_PROVIDER:-ollama}
+      - LLM_MODEL=${LLM_MODEL:-llama3:8b}
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - OPENROUTER_BASE_URL=${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
+      - MEMORY_MAX_RAW_MESSAGES=${MEMORY_MAX_RAW_MESSAGES:-10}
+      - MEMORY_SUMMARIZE_THRESHOLD=${MEMORY_SUMMARIZE_THRESHOLD:-20}
+    volumes:
+      - ./bot:/app:delegated
+    networks:
+      - tg_omni_net
+
+networks:
+  tg_omni_net:
+    external: true

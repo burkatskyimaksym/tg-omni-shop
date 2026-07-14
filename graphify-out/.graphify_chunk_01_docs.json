@@ -1,0 +1,18 @@
+{
+  "files": [
+    "/home/yahweh/tg-omni-shop/.agents/skills/wordpress-pro/SKILL.md",
+    "/home/yahweh/tg-omni-shop/.agents/skills/wordpress-pro/references/gutenberg-blocks.md",
+    "/home/yahweh/tg-omni-shop/.agents/skills/wordpress-pro/references/hooks-filters.md",
+    "/home/yahweh/tg-omni-shop/.agents/skills/wordpress-pro/references/performance-security.md",
+    "/home/yahweh/tg-omni-shop/.agents/skills/wordpress-pro/references/plugin-architecture.md",
+    "/home/yahweh/tg-omni-shop/.agents/skills/wordpress-pro/references/theme-development.md",
+    "/home/yahweh/tg-omni-shop/.planning/telegram-bot-stage1-spec.md",
+    "/home/yahweh/tg-omni-shop/AGENTS.md",
+    "/home/yahweh/tg-omni-shop/README.md",
+    "/home/yahweh/tg-omni-shop/bot/requirements.txt",
+    "/home/yahweh/tg-omni-shop/docker-compose.bot.yml",
+    "/home/yahweh/tg-omni-shop/docker-compose.wp.yml",
+    "/home/yahweh/tg-omni-shop/docker-compose.yml",
+    "/home/yahweh/tg-omni-shop/docs/wp-setup.md"
+  ]
+}
